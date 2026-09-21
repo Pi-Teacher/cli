@@ -3,8 +3,8 @@
 # 项目要求 Go 1.26.7; GOTOOLCHAIN 让旧版本本地工具链自动拉取指定版本,
 # 避免每个开发者手工管理多套 Go 安装.
 
-BINARY  := pi-teacher
-CMD     := ./cmd/pi-teacher
+BINARY  := pi-teacher-cli
+CMD     := ./cmd/pi-teacher-cli
 BIN_DIR := bin
 VERSION ?= $(shell git describe --tags --always --dirty 2>/dev/null || echo dev)
 LDFLAGS := -s -w -X github.com/Pi-Teacher/cli/internal/version.Version=$(VERSION)
