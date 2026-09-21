@@ -1,0 +1,65 @@
+# 手动发布 workflow: 纯 workflow_dispatch 触发, 不随 push/tag 自动运行.
+# 流程: 取仓库最新 tag -> checkout 该 tag 代码 -> 交叉编译 6 个平台产物
+# -> 上传到对应 tag 的 Release. 产物命名: {platform}-pi-teacher-cli-{tag}.
+name: Release
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (含全部 tag)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - name: 解析最新 tag
+        id: tag
+        run: |
+          tag="$(git tag --sort=-v:refname | head -1)"
+          if [ -z "$tag" ]; then
+            echo "仓库中没有任何 tag, 请先打 tag 并推送后再触发发布" >&2
+            exit 1
+          fi
+          echo "TAG=$tag" >> "$GITHUB_OUTPUT"
+          echo "最新 tag: $tag"
+
+      - name: Checkout tag 代码
+        run: git checkout "${{ steps.tag.outputs.TAG }}"
+
+      - name: 交叉编译全部平台
+        env:
+          TAG: ${{ steps.tag.outputs.TAG }}
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          targets="linux-amd64 linux-arm64 darwin-amd64 darwin-arm64 windows-amd64 windows-arm64"
+          for target in $targets; do
+            os="${target%%-*}"
+            arch="${target#*-}"
+            name="${target}-pi-teacher-cli-${TAG}"
+            if [ "$os" = "windows" ]; then
+              name="${name}.exe"
+            fi
+            echo "==> building ${name}"
+            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" go build -trimpath \
+              -ldflags "-s -w -X github.com/Pi-Teacher/cli/internal/version.Version=${TAG}" \
+              -o "dist/${name}" ./cmd/pi-teacher-cli
+          done
+          ls -lh dist
+
+      - name: 上传产物到 Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.tag.outputs.TAG }}
+          files: dist/*
