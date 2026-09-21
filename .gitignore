@@ -1,0 +1,15 @@
+# build artifacts
+bin/
+dist/
+
+# test
+.test/
+
+# local config with credentials (CLI 开发期本地配置, 含 API Key, 绝不入库)
+config.json
+*.env
+.env
+
+# documents (private until docs are ready for open source)
+*.md
+*.mmd
