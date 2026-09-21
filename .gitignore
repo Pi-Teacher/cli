@@ -13,3 +13,6 @@ config.json
 # documents (private until docs are ready for open source)
 *.md
 *.mmd
+
+# README 是仓库门面, 例外跟踪
+!README.md
