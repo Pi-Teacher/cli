@@ -100,3 +100,9 @@ make staticcheck  # staticcheck
 
 标准库优先, 零第三方运行时依赖. 发布为纯手动 GitHub Action:
 打 tag 推送后在 Actions 页面触发 Release, 交叉编译六个平台产物.
+
+## License
+
+本项目基于 [MIT License](LICENSE) 开源。
+
+Copyright (c) 2026 Pi-Teacher
